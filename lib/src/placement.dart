@@ -1,0 +1,1 @@
+enum SymbolPlacement { before, after }
