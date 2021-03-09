@@ -3,27 +3,31 @@ import 'dart:math';
 import 'package:moneymoneymoney/moneymoneymoney.dart';
 import 'package:moneymoneymoney/src/currency.dart';
 import 'package:moneymoneymoney/src/exceptions/currency_conflict_exception.dart';
+import 'package:moneymoneymoney/src/exceptions/currency_mismatch_exception.dart';
 import 'package:moneymoneymoney/src/exceptions/currency_not_found_exception.dart';
 import 'package:moneymoneymoney/src/placement.dart';
 
 class Money {
-  int _amount;
+  final int _amount;
 
-  Currency _currency;
+  final Currency _currency;
 
-  Money(int amount, dynamic currency) : _amount = amount {
-    assert(currency is String || currency is Currency);
-    _currency = currency is String ? Currency(currency) : currency;
-  }
+  Money(int amount, dynamic currency)
+      : assert(currency is String || currency is Currency),
+        _amount = amount,
+        _currency = currency is String ? Currency(currency) : currency;
 
   Currency get currency => _currency;
 
   @override
   String toString() => format();
 
+  int get amount => _amount;
+
   double get amountWithDecimals => _amount / pow(10, _currency.precision);
 
-  int get amountWithoutDecimals => (_amount / pow(10, _currency.precision)).round();
+  int get amountWithoutDecimals =>
+      (_amount / pow(10, _currency.precision)).round();
 
   String format({bool showDecimals = true}) {
     if (_amount == null) {
@@ -32,19 +36,19 @@ class Money {
 
     // Use language code if there is no symbol
     if (_currency.symbol == null) {
-      return '${amount(showDecimals: showDecimals)} ${_currency.code}';
+      return '${formatAmount(showDecimals: showDecimals)} ${_currency.code}';
     }
 
     // Symbol before currency
     if (_currency.symbolPlacement == SymbolPlacement.before) {
-      return '${_currency.symbol}${amount(showDecimals: showDecimals)}';
+      return '${_currency.symbol}${formatAmount(showDecimals: showDecimals)}';
     }
 
     // Symbol after currency
-    return '${amount(showDecimals: showDecimals)}${_currency.symbol}';
+    return '${formatAmount(showDecimals: showDecimals)}${_currency.symbol}';
   }
 
-  String amount({bool showDecimals = true}) {
+  String formatAmount({bool showDecimals = true}) {
     var chars = _amount.toString().split('');
     var skip = 3;
 
@@ -72,14 +76,15 @@ class Money {
     return chars.join('');
   }
 
-  Money.parse(dynamic amount, [dynamic/*?*/ currency]) {
+  factory Money.parse(dynamic amount, [dynamic /*?*/ currency]) {
     assert((amount is String && amount.isNotEmpty) || amount is int);
     assert(currency is String || currency is Currency || currency == null);
 
-    var parsedAmount = amount.toString();
+    var _amount = amount.toString();
+    Currency _currency;
 
     if (currency == null) {
-      var results = Currencies.find(parsedAmount);
+      var results = Currencies.find(_amount);
 
       if (results.length > 1) {
         throw CurrencyConflictException(results);
@@ -91,36 +96,59 @@ class Money {
 
       _currency = results.first;
     } else {
-      _currency = currency is String ? Currency(currency) : currency;
+      _currency =
+          currency is String ? Currency(currency) : (currency as Currency);
     }
 
     // remove HTML encoded characters: http://stackoverflow.com/a/657670
     // special characters that arrive like &0234;
-    parsedAmount = parsedAmount.replaceAll(r'&#?[a-zA-Z0-9]{2,8};', '');
+    _amount = _amount.replaceAll(r'&#?[a-zA-Z0-9]{2,8};', '');
 
     // remove all leading non numbers
-    parsedAmount = parsedAmount.replaceAll(RegExp('^[^0-9]*'), '');
+    _amount = _amount.replaceAll(RegExp('^[^0-9]*'), '');
 
     // remove all thousands separators
     if (_currency.hasThousandSeparator) {
-      parsedAmount =
-          parsedAmount.replaceAll(r'' + _currency.thousandSeparator, '');
+      _amount = _amount.replaceAll(r'' + _currency.thousandSeparator, '');
     }
 
     if (_currency.hasDecimalSeparator) {
       // remove all other characters
-      parsedAmount = parsedAmount.replaceAll(r'[^\d]', '');
+      _amount = _amount.replaceAll(r'[^\d]', '');
 
       // remove decimal separators
-      parsedAmount =
-          parsedAmount.replaceAll(r'' + _currency.decimalSeparator, '');
+      _amount = _amount.replaceAll(r'' + _currency.decimalSeparator, '');
     } else {
       // for currencies that do not have decimal points
       // remove all other characters
-      parsedAmount = parsedAmount.replaceAll(RegExp('[^0-9]'), '');
+      _amount = _amount.replaceAll(RegExp('[^0-9]'), '');
     }
 
-    _amount = int.parse(parsedAmount);
+    return Money(int.parse(_amount), _currency);
+  }
+
+  Money add(Money money) {
+    _assertMatchingCurrency(this, money);
+    return Money(_amount + money.amount, currency);
+  }
+
+  Money subtract(Money money) {
+    _assertMatchingCurrency(this, money);
+    return Money(_amount - money.amount, currency);
+  }
+
+  Money multiply(double multiplier) {
+    return Money((_amount * multiplier).round(), currency);
+  }
+
+  Money divide(double divisor) {
+    return Money((_amount / divisor).round(), currency);
+  }
+
+  void _assertMatchingCurrency(Money a, Money b) {
+    if (a.currency != b.currency) {
+      throw CurrencyMismatchException(a, b);
+    }
   }
 
   /// Format number to a particular currency.

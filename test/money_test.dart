@@ -77,4 +77,24 @@ void main() {
     expect(() => Money.parse(2000).amountWithDecimals,
         throwsA(TypeMatcher<CurrencyNotFoundException>()));
   });
+
+  test('it adds the value of two money objects together', () {
+    var money = Money.parse(1000, 'USD').add(Money.parse(50, 'USD'));
+    expect(money.amount, equals(1050));
+  });
+
+  test('it subtracts money from another money object', () {
+    var money = Money.parse(1000, 'USD').subtract(Money.parse(50, 'USD'));
+    expect(money.amount, equals(950));
+  });
+
+  test('it multiplies the amount with a double', () {
+    var money = Money.parse(1000, 'USD').multiply(1.1);
+    expect(money.amount, equals(1100));
+  });
+
+  test('it divides the amount with a double', () {
+    var money = Money.parse(1000, 'USD').divide(2);
+    expect(money.amount, equals(500));
+  });
 }
