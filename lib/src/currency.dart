@@ -71,4 +71,17 @@ class Currency {
     _decimalSeparator = map['decimalSeparator'];
     _symbolPlacement = map['symbolPlacement'];
   }
+
+  @override
+  String toString() => '$_title ($_code)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Currency &&
+          runtimeType == other.runtimeType &&
+          _code == other._code;
+
+  @override
+  int get hashCode => _code.hashCode;
 }

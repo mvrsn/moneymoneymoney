@@ -1,7 +1,9 @@
 import 'dart:math';
 
-import 'package:intl/intl.dart';
+import 'package:moneymoneymoney/moneymoneymoney.dart';
 import 'package:moneymoneymoney/src/currency.dart';
+import 'package:moneymoneymoney/src/exceptions/currency_conflict_exception.dart';
+import 'package:moneymoneymoney/src/exceptions/currency_not_found_exception.dart';
 import 'package:moneymoneymoney/src/placement.dart';
 
 class Money {
@@ -14,17 +16,32 @@ class Money {
     _currency = currency is String ? Currency(currency) : currency;
   }
 
+  Currency get currency => _currency;
+
   @override
   String toString() => format();
 
+  double get amountWithDecimals => _amount / pow(10, _currency.precision);
+
+  int get amountWithoutDecimals => (_amount / pow(10, _currency.precision)).round();
+
   String format({bool showDecimals = true}) {
+    if (_amount == null) {
+      return '';
+    }
+
+    // Use language code if there is no symbol
     if (_currency.symbol == null) {
       return '${amount(showDecimals: showDecimals)} ${_currency.code}';
-    } else if (_currency.symbolPlacement == SymbolPlacement.before) {
-      return '${_currency.symbol}${amount(showDecimals: showDecimals)}';
-    } else {
-      return '${amount(showDecimals: showDecimals)}${_currency.symbol}';
     }
+
+    // Symbol before currency
+    if (_currency.symbolPlacement == SymbolPlacement.before) {
+      return '${_currency.symbol}${amount(showDecimals: showDecimals)}';
+    }
+
+    // Symbol after currency
+    return '${amount(showDecimals: showDecimals)}${_currency.symbol}';
   }
 
   String amount({bool showDecimals = true}) {
@@ -42,28 +59,40 @@ class Money {
     }
 
     if (showDecimals) {
+      // Insert the decimal separator from the back
       chars.insert(
         chars.length - _currency.precision,
         _currency.decimalSeparator,
       );
     } else {
+      // Remove the decimals based on precision
       chars.removeRange(chars.length - _currency.precision, chars.length);
     }
 
     return chars.join('');
   }
 
-  double get amountWithDecimals => _amount / pow(10, _currency.precision);
-
-  int get amountWithoutDecimals => (_amount / pow(10, _currency.precision)).round();
-
-  Money.parse(dynamic amount, [dynamic currency = 'USD']) {
+  Money.parse(dynamic amount, [dynamic/*?*/ currency]) {
     assert((amount is String && amount.isNotEmpty) || amount is int);
-    assert(currency is String || currency is Currency);
+    assert(currency is String || currency is Currency || currency == null);
 
     var parsedAmount = amount.toString();
 
-    _currency = currency is String ? Currency(currency) : currency;
+    if (currency == null) {
+      var results = Currencies.find(parsedAmount);
+
+      if (results.length > 1) {
+        throw CurrencyConflictException(results);
+      }
+
+      if (results.isEmpty) {
+        throw CurrencyNotFoundException();
+      }
+
+      _currency = results.first;
+    } else {
+      _currency = currency is String ? Currency(currency) : currency;
+    }
 
     // remove HTML encoded characters: http://stackoverflow.com/a/657670
     // special characters that arrive like &0234;
@@ -88,7 +117,7 @@ class Money {
     } else {
       // for currencies that do not have decimal points
       // remove all other characters
-      parsedAmount = parsedAmount.replaceAll(r'/[^\d]/', '');
+      parsedAmount = parsedAmount.replaceAll(RegExp('[^0-9]'), '');
     }
 
     _amount = int.parse(parsedAmount);
@@ -98,4 +127,15 @@ class Money {
   static String moneyFormat(int amount, [String currency = 'USD']) {
     return Money(amount, currency).format();
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Money &&
+          runtimeType == other.runtimeType &&
+          _amount == other._amount &&
+          _currency == other._currency;
+
+  @override
+  int get hashCode => _amount.hashCode ^ _currency.hashCode;
 }

@@ -1,3 +1,5 @@
+import 'package:moneymoneymoney/src/exceptions/currency_conflict_exception.dart';
+import 'package:moneymoneymoney/src/exceptions/currency_not_found_exception.dart';
 import 'package:moneymoneymoney/src/money.dart';
 import 'package:test/test.dart';
 
@@ -11,7 +13,8 @@ void main() {
 
   test('it formats rupees correctly', () {
     expect(Money(15000000, 'INR').format(), equals('₹1,50,000.00'));
-    expect(Money(15000000, 'INR').format(showDecimals: false), equals('₹1,50,000'));
+    expect(Money(15000000, 'INR').format(showDecimals: false),
+        equals('₹1,50,000'));
   });
 
   test('it formats SEK correctly', () {
@@ -31,25 +34,47 @@ void main() {
     expect(Money.parse('\$1,200.90', 'USD').amountWithDecimals, equals(1200.9));
   });
 
+  test(
+      'it throws an exception when no currency is specified and there is a conflict',
+      () {
+    expect(() => Money.parse('1500 kr'),
+        throwsA(TypeMatcher<CurrencyConflictException>()));
+  });
+
   test('it rounds decimals', () {
     expect(Money.parse('\$99.90', 'USD').amountWithoutDecimals, equals(100));
+    expect(Money.parse('\$99.90').amountWithoutDecimals, equals(100));
   });
 
   test('it parses rupees correctly', () {
-    expect(Money.parse('₹1,50,000.00', 'INR').amountWithDecimals, equals(150000.0));
-    expect(Money.parse('₹1,50,000.00', 'INR').amountWithoutDecimals, equals(150000));
+    expect(Money.parse('₹1,50,000.00', 'INR').amountWithDecimals,
+        equals(150000.0));
+    expect(Money.parse('₹1,50,000.00', 'INR').amountWithoutDecimals,
+        equals(150000));
+    expect(Money.parse('₹1,50,000.00').format(showDecimals: false),
+        equals('₹1,50,000'));
   });
 
   test('it parses money from a string', () {
-    expect(Money.parse('2000').amountWithDecimals, equals(20.0));
-    expect(Money.parse('2000').amountWithoutDecimals, equals(20));
+    expect(Money.parse('2000', 'USD').amountWithDecimals, equals(20));
+  });
+
+  test('it throws an exception on an string without currency', () {
+    expect(() => Money.parse('2000').amountWithDecimals,
+        throwsA(TypeMatcher<CurrencyNotFoundException>()));
   });
 
   test('it throws an exception on an empty string', () {
-    expect(() => Money.parse('').amountWithDecimals, throwsA(TypeMatcher<AssertionError>()));
+    expect(() => Money.parse('').amountWithDecimals,
+        throwsA(TypeMatcher<AssertionError>()));
   });
 
   test('it parses money from an int', () {
-    expect(Money.parse(1000).amountWithDecimals, equals(10.0));
+    expect(Money.parse(1000, 'USD').amountWithoutDecimals, equals(10));
+  });
+
+  test('it throws an exception on an int without currency', () {
+    expect(() => Money.parse(2000).amountWithDecimals,
+        throwsA(TypeMatcher<CurrencyNotFoundException>()));
   });
 }

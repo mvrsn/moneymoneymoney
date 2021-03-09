@@ -1,4 +1,5 @@
 import 'package:moneymoneymoney/src/currency.dart';
+import 'package:moneymoneymoney/src/exceptions/currency_conflict_exception.dart';
 import 'package:moneymoneymoney/src/placement.dart';
 
 /// Formats.
@@ -31,6 +32,22 @@ class Currencies {
   void addCurrency(String code, currency) => _currencies[code] = currency;
 
   bool hasCurrency(String code) => _currencies[code] != null;
+
+  static List<Currency> find(String input) {
+    return all.where((currency) {
+      if (currency.symbol == null) {
+        return input.contains(currency.code);
+      }
+
+      // Avoid conflicts with other currencies that contain $ by checking
+      // if the $ is the first character in the input
+      if (currency.code == 'USD') {
+        return input.indexOf(currency.symbol) == 0 || input.contains(currency.code);
+      }
+
+      return input.contains(currency.symbol) || input.contains(currency.code);
+    }).toList();
+  }
 }
 
 final _currencies = {

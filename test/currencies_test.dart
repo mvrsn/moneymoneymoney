@@ -14,8 +14,17 @@ void main() {
   });
 
   test('it returns null if currency does not exist', () {
-    var currency = Currencies.get('i dont exist');
-
-    expect(currency, isNull);
+    expect(Currencies.get('i dont exist'), isNull);
   });
+
+  test('it finds currencies', () {
+    expect(Currencies.find('₹1,50,000').first.code, equals('INR'));
+    expect(Currencies.find('AU\$200').first.code, equals('AUD'));
+    expect(Currencies.find('Z\$200').first.code, equals('ZWD'));
+  });
+
+  test('it does not find USD when finding currencies that contain \$', () {
+    expect(Currencies.find('Z\$200').length, equals(1));
+  });
+
 }
