@@ -1,19 +1,5 @@
 import 'package:moneymoneymoney/src/currency.dart';
-import 'package:moneymoneymoney/src/exceptions/currency_conflict_exception.dart';
 import 'package:moneymoneymoney/src/placement.dart';
-
-/// Formats.
-///
-/// Formats initially collected from
-/// http://www.joelpeterson.com/blog/2011/03/formatting-over-100-currencies-in-php/
-///
-/// All currencies were validated against some trusted
-/// sources like Wikipedia, thefinancials.com and
-/// cldr.unicode.org.
-///
-/// Please note that each format used on each currency is
-/// the format for that particular country/language.
-/// When the country is unknown, the English format is used.
 
 class Currencies {
   static Currency /*?*/ get(String code) {
@@ -33,7 +19,10 @@ class Currencies {
 
   bool hasCurrency(String code) => _currencies[code] != null;
 
-  static List<Currency> find(String input) {
+  /// Utility function for finding currencies in a string
+  /// Some symbols are used in more than one language so
+  /// it's very / possible that there will be conflicts
+  static List<Currency> unreliablyFindPotentialMatches(String input) {
     return all.where((currency) {
       if (currency.symbol == null) {
         return input.contains(currency.code);
@@ -41,7 +30,7 @@ class Currencies {
 
       // Avoid conflicts with other currencies that contain $ by checking
       // if the $ is the first character in the input
-      if (currency.code == 'USD') {
+      if (['BWP', 'GTQ', 'HNL', 'ZAR', 'SZL', 'USD'].contains(currency.code)) {
         return input.indexOf(currency.symbol) == 0 || input.contains(currency.code);
       }
 
