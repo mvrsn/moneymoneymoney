@@ -2,9 +2,7 @@ import 'dart:math';
 
 import 'package:moneymoneymoney/moneymoneymoney.dart';
 import 'package:moneymoneymoney/src/currency.dart';
-import 'package:moneymoneymoney/src/exceptions/currency_conflict_exception.dart';
 import 'package:moneymoneymoney/src/exceptions/currency_mismatch_exception.dart';
-import 'package:moneymoneymoney/src/exceptions/currency_not_found_exception.dart';
 import 'package:moneymoneymoney/src/placement.dart';
 
 class Money {
@@ -76,53 +74,18 @@ class Money {
     return chars.join('');
   }
 
-  factory Money.parse(dynamic amount, [dynamic /*?*/ currency]) {
-    assert((amount is String && amount.isNotEmpty) || amount is int);
-    assert(currency is String || currency is Currency || currency == null);
+  factory Money.parse(String amount, Currency /*!*/ currency) {
+    assert(amount.isNotEmpty);
 
     var _amount = amount.toString();
-    Currency _currency;
-
-    if (currency == null) {
-      var results = Currencies.find(_amount);
-
-      if (results.length > 1) {
-        throw CurrencyConflictException(results);
-      }
-
-      if (results.isEmpty) {
-        throw CurrencyNotFoundException();
-      }
-
-      _currency = results.first;
-    } else {
-      _currency =
-          currency is String ? Currency(currency) : (currency as Currency);
-    }
+    var _currency = currency;
 
     // remove HTML encoded characters: http://stackoverflow.com/a/657670
     // special characters that arrive like &0234;
     _amount = _amount.replaceAll(r'&#?[a-zA-Z0-9]{2,8};', '');
 
     // remove all leading non numbers
-    _amount = _amount.replaceAll(RegExp('^[^0-9]*'), '');
-
-    // remove all thousands separators
-    if (_currency.hasThousandSeparator) {
-      _amount = _amount.replaceAll(r'' + _currency.thousandSeparator, '');
-    }
-
-    if (_currency.hasDecimalSeparator) {
-      // remove all other characters
-      _amount = _amount.replaceAll(r'[^\d]', '');
-
-      // remove decimal separators
-      _amount = _amount.replaceAll(r'' + _currency.decimalSeparator, '');
-    } else {
-      // for currencies that do not have decimal points
-      // remove all other characters
-      _amount = _amount.replaceAll(RegExp('[^0-9]'), '');
-    }
+    _amount = _amount.replaceAll(RegExp('[^0-9]*'), '');
 
     return Money(int.parse(_amount), _currency);
   }
