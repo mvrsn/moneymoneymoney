@@ -3,7 +3,7 @@ import 'package:moneymoneymoney/src/placement.dart';
 
 class Currencies {
   static Currency? get(String code) {
-    var map = _currencies[code.toUpperCase()];
+    var map = currenciesMap[code.toUpperCase()];
 
     if (map == null) {
       return null;
@@ -13,11 +13,11 @@ class Currencies {
   }
 
   static List<Currency> get all =>
-      _currencies.values.map((map) => Currency.fromMap(map)).toList();
+      currenciesMap.values.map((map) => Currency.fromMap(map)).toList();
 
-  void addCurrency(String code, currency) => _currencies[code] = currency;
+  void addCurrency(String code, currency) => currenciesMap[code] = currency;
 
-  bool hasCurrency(String code) => _currencies[code] != null;
+  bool hasCurrency(String code) => currenciesMap[code] != null;
 
   /// Utility function for finding currencies in a string
   /// Some symbols are used in more than one language so
@@ -42,7 +42,7 @@ class Currencies {
   }
 }
 
-final _currencies = {
+final Map<String, Map<String, dynamic>>currenciesMap = {
   'NGN': {
     'code': 'NGN',
     'title': 'Nigerian Naira',
