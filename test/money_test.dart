@@ -58,4 +58,9 @@ void main() {
     expect(() => Money.parse('', Currency('USD')).amountWithDecimals,
         throwsA(TypeMatcher<AssertionError>()));
   });
+
+  test('it formats with the code instead of symbol', () {
+    expect(Money(5000, Currency('USD')).format(replaceSymbolWithCode: true),
+        equals('50.00 USD'));
+  });
 }

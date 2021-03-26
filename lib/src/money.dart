@@ -27,22 +27,17 @@ class Money {
   int get amountWithoutDecimals =>
       (_amount / pow(10, _currency.precision)).round();
 
-  String format({bool showDecimals = true}) {
-    if (_amount == null) {
-      return '';
-    }
-
-    // Use language code if there is no symbol
-    if (_currency.symbol == null) {
+  String format({bool showDecimals = true, bool replaceSymbolWithCode = false}) {
+    if (_currency.symbol == null || replaceSymbolWithCode == true) {
       return '${formatAmount(showDecimals: showDecimals)} ${_currency.code}';
     }
 
-    // Symbol before currency
+    // Currency symbol before amount
     if (_currency.symbolPlacement == SymbolPlacement.before) {
       return '${_currency.symbol}${formatAmount(showDecimals: showDecimals)}';
     }
 
-    // Symbol after currency
+    // Amount before currency symbol
     return '${formatAmount(showDecimals: showDecimals)}${_currency.symbol}';
   }
 
