@@ -7,7 +7,7 @@ void main() {
   });
 
   test('it can get a specific currency', () {
-    var currency = Currencies.get('eur');
+    var currency = Currencies.get('eur')!;
 
     expect(currency, isNotNull);
     expect(currency.code, equals('EUR'));

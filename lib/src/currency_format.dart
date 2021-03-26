@@ -5,7 +5,7 @@ class CurrencyFormat {
 
   int precision;
 
-  String title;
+  String? title;
 
   String thousandSeparator;
 

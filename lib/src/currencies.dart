@@ -2,7 +2,7 @@ import 'package:moneymoneymoney/src/currency.dart';
 import 'package:moneymoneymoney/src/placement.dart';
 
 class Currencies {
-  static Currency /*?*/ get(String code) {
+  static Currency? get(String code) {
     var map = _currencies[code.toUpperCase()];
 
     if (map == null) {
@@ -31,10 +31,13 @@ class Currencies {
       // Avoid conflicts with other currencies that contain $ by checking
       // if the $ is the first character in the input
       if (['BWP', 'GTQ', 'HNL', 'ZAR', 'SZL', 'USD'].contains(currency.code)) {
-        return input.indexOf(currency.symbol) == 0 || input.contains(currency.code);
+        return (currency.symbol != null &&
+                input.indexOf(currency.symbol!) == 0) ||
+            input.contains(currency.code);
       }
 
-      return input.contains(currency.symbol) || input.contains(currency.code);
+      return (currency.symbol != null && input.contains(currency.symbol!)) ||
+          input.contains(currency.code);
     }).toList();
   }
 }
