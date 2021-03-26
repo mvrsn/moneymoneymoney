@@ -83,4 +83,23 @@ void main() {
     expect(Money(5000, 'USD').divide(5).format(), equals('\$10.00'));
     expect((Money(5000, 'USD') / 5).format(), equals('\$10.00'));
   });
+
+  test('it supports comparison operators', () {
+    expect(Money(5000, 'USD') == Money(5000, 'USD'), equals(true));
+    expect(Money(5000, 'USD') == Money(10000, 'USD'), equals(false));
+
+    expect(Money(5000, 'USD') > Money(10000, 'USD'), equals(false));
+    expect(Money(10000, 'USD') > Money(5000, 'USD'), equals(true));
+
+    expect(Money(5000, 'USD') >= Money(5000, 'USD'), equals(true));
+    expect(Money(5000, 'USD') >= Money(10000, 'USD'), equals(false));
+    expect(Money(10000, 'USD') >= Money(5000, 'USD'), equals(true));
+
+    expect(Money(5000, 'USD') < Money(10000, 'USD'), equals(true));
+    expect(Money(10000, 'USD') < Money(5000, 'USD'), equals(false));
+
+    expect(Money(5000, 'USD') <= Money(5000, 'USD'), equals(true));
+    expect(Money(5000, 'USD') <= Money(10000, 'USD'), equals(true));
+    expect(Money(10000, 'USD') <= Money(5000, 'USD'), equals(false));
+  });
 }

@@ -122,6 +122,34 @@ class Money {
           _amount == other._amount &&
           _currency == other._currency;
 
+  bool operator >(Object other) =>
+      identical(this, other) ||
+      other is Money &&
+          runtimeType == other.runtimeType &&
+          _amount > other.amount &&
+          _currency == other._currency;
+
+  bool operator <(Object other) =>
+      identical(this, other) ||
+      other is Money &&
+          runtimeType == other.runtimeType &&
+          _amount < other.amount &&
+          _currency == other._currency;
+
+  bool operator >=(Object other) =>
+      identical(this, other) ||
+      other is Money &&
+          runtimeType == other.runtimeType &&
+          _amount >= other.amount &&
+          _currency == other._currency;
+
+  bool operator <=(Object other) =>
+      identical(this, other) ||
+      other is Money &&
+          runtimeType == other.runtimeType &&
+          _amount <= other.amount &&
+          _currency == other._currency;
+
   Money operator +(Money other) => add(other);
 
   Money operator -(Money other) => subtract(other);
