@@ -122,6 +122,14 @@ class Money {
           _amount == other._amount &&
           _currency == other._currency;
 
+  Money operator +(Money other) => add(other);
+
+  Money operator -(Money other) => subtract(other);
+
+  Money operator *(double multiplier) => multiply(multiplier);
+
+  Money operator /(double divisor) => divide(divisor);
+
   @override
   int get hashCode => _amount.hashCode ^ _currency.hashCode;
 }

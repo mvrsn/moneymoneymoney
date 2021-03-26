@@ -63,4 +63,24 @@ void main() {
     expect(Money(5000, Currency('USD')).format(replaceSymbolWithCode: true),
         equals('50.00 USD'));
   });
+
+  test('it supports addition', () {
+    expect(Money(5000, 'USD').add(Money(2500, 'USD')).format(), equals('\$75.00'));
+    expect((Money(5000, 'USD') + Money(2500, 'USD')).format(), equals('\$75.00'));
+  });
+
+  test('it supports subtraction', () {
+    expect(Money(5000, 'USD').subtract(Money(2500, 'USD')).format(), equals('\$25.00'));
+    expect((Money(5000, 'USD') - Money(2500, 'USD')).format(), equals('\$25.00'));
+  });
+
+  test('it supports multiplication', () {
+    expect(Money(5000, 'USD').multiply(2.5).format(), equals('\$125.00'));
+    expect((Money(5000, 'USD') * 2.5).format(), equals('\$125.00'));
+  });
+
+  test('it supports division', () {
+    expect(Money(5000, 'USD').divide(5).format(), equals('\$10.00'));
+    expect((Money(5000, 'USD') / 5).format(), equals('\$10.00'));
+  });
 }
